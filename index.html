@@ -1,0 +1,463 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Happy Birthday Samridhi</title>
+    <link href="https://fonts.googleapis.com/css2?family=Great+Vibes&family=Montserrat:wght@300;400;600&family=Dancing+Script&display=swap" rel="stylesheet">
+    
+    <style>
+        body { 
+            margin: 0; 
+            background: #050203; 
+            font-family: 'Montserrat', sans-serif; 
+            overflow-x: hidden;
+            overflow-y: hidden; 
+            cursor: pointer;
+        }
+
+        #intro-layer {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: #000; display: flex; flex-direction: column; justify-content: center; align-items: center;
+            z-index: 9999; color: white; padding: 20px; text-align: center;
+        }
+        .question-text { font-size: 2rem; font-weight: 300; margin-bottom: 30px; opacity: 0; }
+        .date-display { 
+            font-size: 6rem; font-family: 'Great Vibes', cursive; color: #ff0055; 
+            text-shadow: 0 0 30px #ff0055; display: none; 
+        }
+        #check-btn { padding: 15px 40px; border: 1px solid rgba(255,255,255,0.3); background: transparent; color: white; font-size: 1.2rem; border-radius: 50px; cursor: pointer; transition: 0.3s; opacity: 0; }
+        #check-btn:hover { background: #ff0055; border-color: #ff0055; box-shadow: 0 0 20px #ff0055; }
+
+        #flash-overlay {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: white; z-index: 10000; pointer-events: none; opacity: 0;
+        }
+
+        #canvas-container { 
+            position: fixed; top: 0; left: 0; width: 100%; height: 100vh; z-index: -1; 
+            opacity: 0; transition: opacity 2s ease;
+        }
+
+        #main-scroll { position: relative; z-index: 10; opacity: 0; pointer-events: none; }
+
+        .hero-section { height: 100vh; display: flex; flex-direction: column; justify-content: center; align-items: center; text-align: center; padding: 0 20px; }
+        .hero-section h1 { 
+            font-family: 'Great Vibes', cursive; font-size: 5rem; color: #fff; 
+            text-shadow: 0 0 20px #ff0055; margin: 0; 
+            opacity: 0; transform: scale(0.5); 
+        }
+        .scroll-indicator { margin-top: 50px; color: rgba(255,255,255,0.6); font-size: 0.9rem; letter-spacing: 3px; opacity: 0; }
+
+        .photo-section {
+            height: 80vh; 
+            display: flex; justify-content: center; align-items: center;
+            position: relative;
+            perspective: 1000px;
+            overflow: hidden; 
+        }
+
+        .memory-card { 
+            text-align: center; 
+            max-width: 90%; 
+            width: 350px;
+            opacity: 0; 
+            position: absolute; 
+        }
+
+        .img-circle-wrapper {
+            width: 250px; height: 250px; margin: 0 auto; 
+            border-radius: 50%; overflow: hidden; 
+            border: 3px solid rgba(255, 255, 255, 0.8);
+            box-shadow: 0 0 40px rgba(255, 0, 85, 0.6);
+            transition: transform 0.3s;
+        }
+        .img-circle-wrapper:hover { transform: scale(1.05); }
+        .img-circle-wrapper img { width: 100%; height: 100%; object-fit: cover; }
+        .memory-card p { color: #ffccdd; font-size: 1.2rem; margin-top: 25px; line-height: 1.6; font-weight: 300; text-shadow: 0 2px 5px rgba(0,0,0,0.5); background: rgba(0,0,0,0.3); padding: 10px; border-radius: 10px; backdrop-filter: blur(2px); }
+
+        .outro-section { height: 100vh; display: flex; flex-direction: column; justify-content: center; align-items: center; text-align: center; padding: 0 20px; }
+        .outro-text { font-family: 'Great Vibes', cursive; font-size: 5rem; color: white; opacity: 0; transform: scale(0.8); margin-bottom: 20px; }
+        .scroll-more { font-size: 0.9rem; color: #888; margin-top: 20px; opacity: 0; animation: fadeBlink 2s infinite; }
+        @keyframes fadeBlink { 0%, 100% {opacity: 0.3;} 50% {opacity: 1;} }
+
+        .wish-section {
+            height: 100vh; 
+            display: flex; flex-direction: column; justify-content: center; align-items: center; text-align: center;
+            position: relative;
+            overflow: hidden; 
+            padding: 0 20px;
+        }
+        
+        .wish-title {
+            font-family: 'Great Vibes', cursive; font-size: 3.5rem; color: #ff3366; 
+            margin-bottom: 20px; 
+            text-shadow: 0 0 20px #ff3366;
+            opacity: 0; transform: translateY(30px);
+            z-index: 20;
+            width: 100%;
+        }
+        
+        #trigger-zone {
+            width: 300px;
+            height: 100px;
+            position: absolute;
+            left: 50%;
+            top: 75%;
+            transform: translate(-50%, -50%);
+            z-index: 50; 
+        }
+
+        #runaway-wrapper {
+            position: absolute;
+            left: 50%;
+            top: 75%;
+            transform: translate(-50%, -50%);
+            z-index: 40;
+            transition: all 0.4s cubic-bezier(0.68, -0.55, 0.27, 1.55); 
+        }
+
+        .wish-input {
+            width: 300px; max-width: 80vw;
+            padding: 15px 20px; font-size: 1.2rem; 
+            border-radius: 30px; border: 2px solid #ff3366; 
+            background: rgba(255,255,255,0.1); color: white; outline: none;
+            backdrop-filter: blur(5px); text-align: center;
+            font-family: 'Montserrat', sans-serif;
+            box-shadow: 0 0 20px rgba(255, 51, 102, 0.4);
+            cursor: not-allowed;
+        }
+        .wish-input::placeholder { color: rgba(255,255,255,0.7); }
+
+        .cursor-dot, .cursor-outline {
+            position: fixed; top: 0; left: 0;
+            transform: translate(-50%, -50%);
+            border-radius: 50%; z-index: 9999; pointer-events: none;
+        }
+        .cursor-dot { width: 8px; height: 8px; background-color: #ff3366; }
+        .cursor-outline { width: 40px; height: 40px; border: 1px solid rgba(255, 51, 102, 0.5); transition: all 0.1s ease-out; }
+
+        @media (max-width: 768px) {
+            .question-text { font-size: 1.5rem; }
+            .date-display { font-size: 4rem; }
+            .hero-section h1 { font-size: 3.5rem; }
+            .outro-text { font-size: 3.5rem; }
+            .wish-title { font-size: 2.5rem; margin-bottom: 40px; }
+            .img-circle-wrapper { width: 200px; height: 200px; }
+            .memory-card p { font-size: 1rem; }
+            .cursor-dot, .cursor-outline { display: none; }
+            #trigger-zone, #runaway-wrapper { top: 75%; }
+        }
+
+    </style>
+</head>
+<body>
+
+    <audio id="burst-sound"><source src="https://cdn.pixabay.com/download/audio/2022/03/10/audio_c8c8a73467.mp3?filename=magic-spell-6005.mp3" type="audio/mpeg"></audio>
+    <audio id="pop-sound"><source src="https://cdn.pixabay.com/download/audio/2022/03/15/audio_27565e6793.mp3?filename=pop-94319.mp3" type="audio/mpeg"></audio>
+    
+    <audio id="bg-music" loop>
+        <source src="Elliot James Reay - I Think They Call This Love (Lyrics) - daydream..mp3" type="audio/mpeg">
+        <source src="https://cdn.pixabay.com/download/audio/2022/03/24/audio_9c0b1e3609.mp3?filename=piano-moment-11634.mp3" type="audio/mpeg">
+    </audio>
+
+    <div id="flash-overlay"></div>
+
+    <div id="intro-layer">
+        <div class="question-text" id="q1">Hey you...</div>
+        <div class="question-text" id="q2">Do you know what makes today special?</div>
+        <button id="check-btn">Reveal Date</button>
+        <div class="date-display" id="final-date">25th December</div>
+    </div>
+
+    <div id="canvas-container"></div>
+
+    <div id="main-scroll">
+        <div class="hero-section">
+            <h1>Happy Birthday<br>Love, Samridhi ❤️</h1>
+            <div class="scroll-indicator">SCROLL DOWN SLOWLY</div>
+        </div>
+
+        <div class="photo-section">
+            <div class="memory-card">
+                <div class="img-circle-wrapper">
+                    <img src="1.jpeg" alt="Photo 1">
+                </div>
+                <p>The moment you walked into my life, everything changed for the better.</p>
+            </div>
+        </div>
+
+        <div class="photo-section">
+            <div class="memory-card">
+                <div class="img-circle-wrapper">
+                    <img src="2.jpeg" alt="Photo 2">
+                </div>
+                <p>Your smile is my favorite thing in the entire universe. Keep shining.</p>
+            </div>
+        </div>
+
+        <div class="photo-section">
+            <div class="memory-card">
+                <div class="img-circle-wrapper">
+                    <img src="3.jpeg" alt="Photo 3">
+                </div>
+                <p>Through every up and down, holding your hand is my strength.</p>
+            </div>
+        </div>
+
+        <div class="photo-section">
+            <div class="memory-card">
+                <div class="img-circle-wrapper">
+                    <img src="4.jpeg" alt="Photo 4">
+                </div>
+                <p>You are not just my girlfriend, you are my best friend and my home.</p>
+            </div>
+        </div>
+
+        <div class="photo-section">
+            <div class="memory-card">
+                <div class="img-circle-wrapper">
+                    <img src="5.jpeg" alt="Photo 5">
+                </div>
+                <p>I promise to make every birthday more special than the last.</p>
+            </div>
+        </div>
+
+        <div class="outro-section">
+            <div class="outro-text">I Love You,<br>Forever & Always.</div>
+            <div class="scroll-more">Keep Scrolling...</div>
+        </div>
+
+        <div class="wish-section" id="wish-section">
+            <h2 class="wish-title">What do you want for your birthday?<br>Make a wish...</h2>
+            
+            <div id="trigger-zone"></div>
+            <div id="runaway-wrapper">
+                <input type="text" class="wish-input" placeholder="Type your wish here..." readonly>
+            </div>
+        </div>
+    </div>
+
+    <script type="importmap">
+        { "imports": { "three": "https://unpkg.com/three@0.160.0/build/three.module.js", "gsap": "https://unpkg.com/gsap@3.12.5/index.js", "ScrollTrigger": "https://unpkg.com/gsap@3.12.5/ScrollTrigger.js" } }
+    </script>
+
+    <script type="module">
+        import * as THREE from 'three';
+        import gsap from 'gsap';
+        import { ScrollTrigger } from 'ScrollTrigger';
+
+        gsap.registerPlugin(ScrollTrigger);
+
+        const cursorDot = document.querySelector('.cursor-dot');
+        const cursorOutline = document.querySelector('.cursor-outline');
+        window.addEventListener('mousemove', (e) => {
+            cursorDot.style.left = `${e.clientX}px`; cursorDot.style.top = `${e.clientY}px`;
+            cursorOutline.animate({ left: `${e.clientX}px`, top: `${e.clientY}px` }, { duration: 500, fill: "forwards" });
+        });
+
+        const burstAudio = document.getElementById('burst-sound');
+        const popAudio = document.getElementById('pop-sound');
+        const bgMusic = document.getElementById('bg-music');
+        bgMusic.volume = 0.5;
+
+        const btn = document.getElementById('check-btn');
+        const q1 = document.getElementById('q1');
+        const q2 = document.getElementById('q2');
+        const finalDate = document.getElementById('final-date');
+        const introLayer = document.getElementById('intro-layer');
+        const mainScroll = document.getElementById('main-scroll');
+        const canvasContainer = document.getElementById('canvas-container');
+
+        gsap.timeline()
+          .to(q1, { opacity: 1, duration: 1, delay: 0.5 })
+          .to(q1, { opacity: 0, duration: 1, delay: 1.5 })
+          .to(q2, { opacity: 1, duration: 1, onComplete: () => gsap.to(btn, { opacity: 1, duration: 0.5 }) });
+
+        btn.addEventListener('click', () => {
+            q2.style.display = 'none'; btn.style.display = 'none'; finalDate.style.display = 'block';
+            
+            const dates = ["Today", "Wait...", "No...", "Calculating...", "25th Dec"];
+            let i = 0;
+            const interval = setInterval(() => {
+                finalDate.innerText = dates[i]; i++;
+                
+                if(i >= dates.length) {
+                    clearInterval(interval);
+                    
+                    const tl = gsap.timeline();
+
+                    tl.to(finalDate, { x: 5, y: 5, rotation: 2, duration: 0.05, repeat: 20, yoyo: true }) 
+                      .add(() => { 
+                          burstAudio.play();
+                          bgMusic.currentTime = 34;
+                          bgMusic.play(); 
+                      }) 
+                      .to("#flash-overlay", { opacity: 1, duration: 0.1 }) 
+                      .set(introLayer, { display: "none" })
+                      .set(mainScroll, { opacity: 1, pointerEvents: "all" })
+                      .set(canvasContainer, { opacity: 1 })
+                      .set("body", { overflowY: "auto" })
+                      .to("#flash-overlay", { opacity: 0, duration: 2, ease: "power2.out" }) 
+                      .to(".hero-section h1", { scale: 1, opacity: 1, duration: 2, ease: "elastic.out(1, 0.5)" }, "-=1.5")
+                      .to(".scroll-indicator", { opacity: 1, duration: 1 }, "-=1")
+                      .add(() => initAnimations());
+                }
+            }, 200);
+        });
+
+        const scene = new THREE.Scene();
+        scene.fog = new THREE.FogExp2(0x050203, 0.002);
+        const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+        camera.position.z = 5;
+        const renderer = new THREE.WebGLRenderer({ alpha: true, antialias: true });
+        renderer.setSize(window.innerWidth, window.innerHeight);
+        document.getElementById('canvas-container').appendChild(renderer.domElement);
+
+        function createHeartTexture() {
+            const canvas = document.createElement('canvas'); canvas.width = 64; canvas.height = 64;
+            const ctx = canvas.getContext('2d'); ctx.fillStyle = "#ff3366"; 
+            const x = 32, y = 32; ctx.beginPath(); ctx.moveTo(x, y + 10);
+            ctx.bezierCurveTo(x - 20, y - 20, x - 25, y, x, y + 25);
+            ctx.bezierCurveTo(x + 25, y, x + 20, y - 20, x, y + 10); ctx.fill();
+            return new THREE.CanvasTexture(canvas);
+        }
+
+        const heartGeo = new THREE.BufferGeometry();
+        const count = 1500; const positions = new Float32Array(count * 3);
+        for(let i=0; i<count*3; i+=3) {
+            positions[i] = (Math.random() - 0.5) * 40; positions[i+1] = (Math.random() - 0.5) * 40; positions[i+2] = (Math.random() - 0.5) * 40;
+        }
+        heartGeo.setAttribute('position', new THREE.BufferAttribute(positions, 3));
+        const heartMat = new THREE.PointsMaterial({ size: 0.3, map: createHeartTexture(), transparent: true, opacity: 0.8, blending: THREE.AdditiveBlending, depthWrite: false });
+        const hearts = new THREE.Points(heartGeo, heartMat);
+        scene.add(hearts);
+
+        const fireworks = [];
+        class Firework {
+            constructor(x, y) {
+                const particleCount = 20; this.geometry = new THREE.BufferGeometry();
+                const posArray = new Float32Array(particleCount * 3); const velArray = [];
+                for(let i=0; i<particleCount; i++) {
+                    posArray[i*3] = x; posArray[i*3+1] = y; posArray[i*3+2] = -5; 
+                    velArray.push({ x: (Math.random() - 0.5) * 0.2, y: (Math.random() - 0.5) * 0.2, z: (Math.random() - 0.5) * 0.2 });
+                }
+                this.geometry.setAttribute('position', new THREE.BufferAttribute(posArray, 3));
+                const color = new THREE.Color().setHSL(Math.random(), 1, 0.5);
+                this.material = new THREE.PointsMaterial({ size: 0.2, color: color, transparent: true, opacity: 1 });
+                this.mesh = new THREE.Points(this.geometry, this.material); this.velocities = velArray; scene.add(this.mesh);
+            }
+            update() {
+                const pos = this.geometry.attributes.position.array;
+                for(let i=0; i<pos.length/3; i++) {
+                    pos[i*3] += this.velocities[i].x; pos[i*3+1] += this.velocities[i].y; pos[i*3+2] += this.velocities[i].z;
+                }
+                this.geometry.attributes.position.needsUpdate = true; this.material.opacity -= 0.02; 
+            }
+        }
+
+        window.addEventListener('click', (e) => {
+            if(document.body.style.overflowY === 'auto') { 
+                const x = (e.clientX / window.innerWidth) * 20 - 10;
+                const y = -(e.clientY / window.innerHeight) * 20 + 10;
+                fireworks.push(new Firework(x, y));
+                const soundClone = popAudio.cloneNode(); soundClone.volume = 0.3; soundClone.play();
+            }
+        });
+
+        function animate() {
+            requestAnimationFrame(animate); 
+            const time = Date.now() * 0.001;
+            hearts.rotation.y = time * 0.05; hearts.rotation.x = time * 0.02;
+            const s = 1 + Math.sin(time * 2) * 0.1; hearts.scale.set(s, s, s);
+
+            for (let i = fireworks.length - 1; i >= 0; i--) {
+                fireworks[i].update();
+                if (fireworks[i].material.opacity <= 0) { scene.remove(fireworks[i].mesh); fireworks.splice(i, 1); }
+            }
+            renderer.render(scene, camera);
+        }
+        animate();
+
+        function initAnimations() {
+            const sections = document.querySelectorAll('.photo-section');
+            
+            sections.forEach((section, index) => {
+                const card = section.querySelector('.memory-card');
+                const isEven = index % 2 === 0;
+
+                const startX = isEven ? -window.innerWidth : window.innerWidth;
+                const endX = isEven ? window.innerWidth : -window.innerWidth;
+                const startRot = isEven ? -60 : 60;
+                const endRot = isEven ? 60 : -60;
+
+                const tl = gsap.timeline({
+                    scrollTrigger: {
+                        trigger: section,
+                        start: "top 80%",  
+                        end: "bottom 40%", 
+                        scrub: 1 
+                    }
+                });
+
+                tl.fromTo(card, 
+                    { x: startX, y: 0, rotation: startRot, opacity: 0, scale: 0.5 },
+                    { x: 0, y: 0, rotation: 0, opacity: 1, scale: 1, ease: "power1.out", duration: 1 }
+                )
+                .to(card, { duration: 0.3 }) 
+                .to(card, {
+                    x: endX, y: 0, rotation: endRot, opacity: 0, scale: 0.5, ease: "power1.in", duration: 1
+                });
+            });
+
+            gsap.to(".outro-text", {
+                opacity: 1, scale: 1, duration: 2, ease: "elastic.out(1, 0.5)",
+                scrollTrigger: { trigger: ".outro-section", start: "top 70%" }
+            });
+            gsap.to(".scroll-more", { opacity: 1, delay: 2 });
+
+            gsap.to(".wish-title", {
+                opacity: 1, y: 0, duration: 1.5,
+                scrollTrigger: { trigger: ".wish-section", start: "top 60%" }
+            });
+        }
+
+        window.addEventListener('resize', () => {
+            camera.aspect = window.innerWidth / window.innerHeight;
+            camera.updateProjectionMatrix();
+            renderer.setSize(window.innerWidth, window.innerHeight);
+        });
+
+        const triggerZone = document.getElementById('trigger-zone');
+        const runawayWrapper = document.getElementById('runaway-wrapper');
+        const wishSection = document.getElementById('wish-section');
+        
+        function runAway() {
+            const sectionRect = wishSection.getBoundingClientRect();
+        
+            const rX = Math.random() * (sectionRect.width - 300);
+            const rY = Math.random() * (sectionRect.height - 100);
+
+            runawayWrapper.style.left = Math.max(20, rX) + 'px';
+            runawayWrapper.style.top = Math.max(20, rY) + 'px';
+            runawayWrapper.style.transform = "none"; 
+        }
+
+        function returnHome() {
+            runawayWrapper.style.left = '50%';
+            runawayWrapper.style.top = '75%';
+            runawayWrapper.style.transform = "translate(-50%, -50%)";
+        }
+
+        triggerZone.addEventListener('mouseenter', runAway);
+        triggerZone.addEventListener('mouseleave', returnHome);
+
+        triggerZone.addEventListener('touchstart', (e) => {
+            e.preventDefault(); 
+            runAway();
+            setTimeout(returnHome, 1000); 
+        });
+
+    </script>
+</body>
+</html>
